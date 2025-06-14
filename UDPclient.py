@@ -14,3 +14,9 @@ class UDPClient:
         self.buffer_size = 1024
         self.max_retries = 5
         self.initial_timeout = 1.0  # 初始超时时间（秒）
+
+    def send_and_receive(self, sock: socket.socket, message: str,
+                         dest_addr: Tuple[str, int]) -> Optional[str]:
+        """发送消息并接收响应，包含超时重传机制"""
+        current_timeout = self.initial_timeout
+        retries = 0
