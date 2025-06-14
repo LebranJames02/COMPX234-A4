@@ -35,3 +35,13 @@ class UDPClient:
                 response = data.decode().strip()
                 print(f"接收: {response} 来自 {addr}")
                 return response
+
+            except socket.timeout:
+                retries += 1
+                print(f"超时 ({retries}/{self.max_retries}), 重传...")
+                # 指数退避
+                current_timeout *= 2
+                if retries > self.max_retries:
+                    print(f"重传次数超过限制，放弃请求")
+                    return None
+
