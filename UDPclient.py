@@ -20,3 +20,18 @@ class UDPClient:
         """发送消息并接收响应，包含超时重传机制"""
         current_timeout = self.initial_timeout
         retries = 0
+
+        while retries <= self.max_retries:
+            try:
+                # 发送消息
+                sock.sendto(message.encode(), dest_addr)
+                print(f"发送: {message} 到 {dest_addr}")
+
+                # 设置超时
+                sock.settimeout(current_timeout)
+
+                # 接收响应
+                data, addr = sock.recvfrom(self.buffer_size * 10)
+                response = data.decode().strip()
+                print(f"接收: {response} 来自 {addr}")
+                return response
