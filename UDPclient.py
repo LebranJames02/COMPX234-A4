@@ -106,3 +106,44 @@ class UDPClient:
 
         print(f"文件 {filename} 连接已关闭")
         return True
+
+    def run(self):
+        """运行客户端"""
+        try:
+            # 创建UDP socket
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                # 读取下载列表
+                if not os.path.exists(self.download_list):
+                    print(f"下载列表文件 {self.download_list} 不存在")
+                    return
+
+                with open(self.download_list, 'r') as f:
+                    filenames = [line.strip() for line in f if line.strip()]
+
+                if not filenames:
+                    print("下载列表为空")
+                    return
+
+                # 处理每个文件
+                for filename in filenames:
+                    print(f"\n处理文件: {filename}")
+
+                    # 发送DOWNLOAD请求
+                    download_request = f"DOWNLOAD {filename}"
+                    server_addr = (self.server_host, self.server_port)
+
+                    response = self.send_and_receive(sock, download_request, server_addr)
+                    if not response:
+                        print(f"获取文件 {filename} 失败")
+                        continue
+
+                    # 解析响应
+                    parts = response.split()
+                    if parts[0] == "OK" and parts[1] == filename and "SIZE" in parts and "PORT" in parts:
+                        # 提取文件大小和数据端口
+                        size_idx = parts.index("SIZE") + 1
+                        port_idx = parts.index("PORT") + 1
+
+                        try:
+                            file_size = int(parts[size_idx])
+                            data_port = int(parts[port_idx])
